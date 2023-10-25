@@ -1,0 +1,127 @@
+
+---
+title: '46553665'
+author: "Sean Gillespie"
+date: "2023-10-24"
+output:
+  pdf_document: default
+  html_document: default
+---
+```{r}
+
+boxplot(traffic$transport, traffic$road, traffic$weather, traffic$fuel, traffic$wind)
+#this plot shows that fuel and wind are not good indicators of spi due to extremely high and extremely low variability in responses respectively. We will proceed with the model with all variables intact.
+
+SPIlm = lm(spi ~ transport + road + weather + fuel + wind, data = traffic)
+SPIanova = aov(spi ~ transport + road + weather + fuel + wind, data = traffic)
+
+qqnorm(SPIlm$residuals)
+qqline(SPIlm$residuals)
+# This plot shows a mostly linear distribution across all independent variable's residuals with some flaring at the top and bottom of the sample quantiles.
+
+#For later testing, new object created without fuel and wind as factors.
+SPIlm2 = lm(spi ~ transport + road + weather, data = traffic)
+
+plot(traffic)
+# A. There don't seem to be many linear relationships between variables. There seems to be a weak positive linear relationship between SPI and Weather, and a weak negative linear relationship between SPI and Transport. At first glance and without further investigation, there is no relationship between other variables.
+# With that said, it's clear that some of the variable responses are numerical discrete values, resulting in striped patterns when tested against other variables e.g., all plots that include Transport are not scattered in a way that represents continuous values.
+
+SPIanova = aov(spi ~ transport + road + weather + fuel + wind, data = traffic)
+anova(SPIanova)
+
+lm(SPIlm)
+
+summary(SPIlm)
+
+confint(SPIlm, level = .95)
+
+# B. Based on the above ANOVA and linear model analyses, it's clear that weather has a positive impact on SPI. Based on the models, with 95% confidence, we can assume that a 1 unit increase in weather would result in an increase on SPI of between 3.350 and 5.142.
+
+# C.
+# spi = β₀ + β₁ * transport + β₂ * road + β₃ * weather + β₄* fuel + β₅ * wind + ε
+# Coefficients from linear model gave us the following:
+#(Intercept) # transport       road      weather       fuel         wind  
+# 62.8071      -2.1750      -2.4097       4.2456      -3.6145      -0.1358 
+#epsilon is error in the model that is not caused by any of the factors listed here.
+#B0 is the intercept, showing how spi would be impacted by holding all independen variables at 0.
+
+# H₀: The independent variables will not have a significant impact on spi
+# H₁: The independent variables will have a significant impact on spi.
+
+#F-statistic: 31.96 on 5 and 56 DF,  p-value: 3.039e-15 based on R Summary function
+
+#Based on the coefficients summary, specifically the P-values of the ANOVA run before, transport, road, and weather all have a significant (P-value<0.05) impact on spi separately.
+# fuel and wind, with a P-value>0.05 do not have a significant impact on spi.
+# Taken overall though, with a p-value of 3.039e-15, it can be concluded from these tests that the relationship between variables overall is highly significant. That is to say that the null hypothesis can be rejected and transport, road, weather, fuel and wind do impact spi. Just some more than others.
+
+#The full regression model is not appropriate to understand spi and the impact of all independent variables. As mentioned, wind and fuel are not significant factors in the value of spi and should be removed for a better understanding of the model. In future, it would be wise to test further against previously established object SPIlm2.
+
+summary(SPIlm)$r.squared
+
+#With an R-Squared value of .741, the model above does a reasonably good job of explaining the variation in the response variable i.e., 74% of variation in spi is explained by the independent variables, with 26% unexplained
+
+summary(SPIlm2)
+# The above formula is based on an object created earlier with wind and fuel removed as factors in spi. All p-values are now lower than 0.05 for each independent variable and overall. With other factors removed, the R-squared value i.e., explained variance in the model has decreased by roughly 1.5%. This implies that wind and fuel were only accounting for 1.5% of variance in the model.
+# Multiple R-Squared values do not account for increased number of variables in model, often increasing arbitrarily with increases in predictor variables. The adjusted R-Squared value accounts for the number of predictors and adjusts (usually down) accordingly.
+
+```
+
+```{r}
+# The design of the study is balanced. All recipes have been used an equal number of times across A, B and C, and all temperatures have been repeated across each recipe. Only predictor variables are subject to balance statements.
+
+plot(cake)
+
+
+# Scatter plot shows that most values in this dataset are discrete, not necessarily numerical. There may be a slight positive linear relationship between angle and temperature but it's difficult to tell from the plot due to the discrete data types.
+
+boxplot(cake$Temp, cake$Angle)
+boxplot(cake$Temp)
+boxplot(cake$Angle)
+
+# Box plots for numeric variables, both predictor and outcome, run separately and against each other. Temperature is distributed evenly, which makes sense from the fact that it's a balanced study. Angle has far greater variability in the 1st and 4th quartile with 2 outliers. These won't be removed as they are only just outside the quartile bounds.
+
+# angle = β₀ + β₁ × temp + β₂ × recipe + β₃ × (temp×recipe) + ε
+# where β₀ is intercept, where angle would sit if all indicator variables was 0
+# B1 is the coefficient of temperature, representing the change in angle that would occur with a change in temperature
+# B2 is the coefficient of recipe, representing the change in angle that would occur with a change in recipe
+#B3 is the coefficient of the interaction term between recipe and temp, representing how the relationship between the 2 indicator variables can impact the dependent variable.
+# Epsilon is unaccounted error in the model that is not explained by temp and recipe.
+
+# H0: Temp and recipe have no significannt effect on angle
+# H1: Temp and recipe have a significant effect on angle
+
+plot(lmcake)
+# Residuals are evenly distributed, no pattern in scatter plot. Assumption of normality in residuals variaton is met.
+
+qqnorm(lmcake$residuals)
+qqline(lmcake$residuals)
+
+# QQ plot of residuals is linear and positive.
+#Can proceed with analysis because both assumptions have been met.
+
+lmcake = lm(Angle ~ Temp + as.factor(Recipe), data = cake)
+lm(lmcake)
+lmtemp = lm(Angle ~ Temp, data = cake)
+lmrecipe = lm(Angle ~ as.factor(Recipe), data = cake)
+
+summary(lmcake)
+summary (lmtemp)
+summary (lmrecipe)
+
+# Based on summary results,  with a p-value of <0.05, temp and recipe have a significant impact on angle, with a 1-unit increase on temp to cause a .17245 increase in angle.
+# R-Squared values imply that temp and recipe have very little impact on overall angle results, only accounting for roughly 10% of variation. There is more likely to be a different factor at play that has a much higher impact on Angle results.
+#With all of that said, due to the low P-values, we can reject the null hypothesis and accept that temp and recipe do have an impact on Angle, just not a very large one.
+
+#main effects analysis
+#HO: Temp does not have an effect on Angle
+#H1: Temp has an effect on Angle
+
+#H0: Recipe does not have an effect on Angle
+#H1: Recipe does have an effect on Angle
+
+# Further, once main analysis is complete holding all other variables in place i.e., no interaction effect, Temp still continues to have a P-value less than 0.05, therefore we should reject the null hypothesis with 95% confidence and say that Temp does have an effect on angle.
+
+#The same can be said for recipe in that at least 1 of 3 recipes (recipe3) has a p-value of less than 0.05, therefore is statistically significant and we can conclude that recipe also has an impact on Angle.
+
+
+```
